@@ -31,15 +31,17 @@ public class ViewBombermanGame extends JFrame implements Observer {
 		int dy = centerPoint.y - windowSize.height / 2 - 600;
 		this.setLocation(dx,dy);
 
-		try {
-			this._map = new Map("layout/" + this._controllerGame.getLayout());
-		} catch (Exception e) {
-			e.printStackTrace();
+		if(this._controllerGame.getLayout() != null && this._controllerGame.getLayout().endsWith(".lay")) {
+			try {
+				this._map = new Map("layout/" + this._controllerGame.getLayout());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			this._panel = new PanelBomberman(this._map);
+			this.setContentPane(this._panel);
+			this.setVisible(true);
 		}
-		
-		this._panel = new PanelBomberman(this._map);
-		this.setContentPane(this._panel);
-		this.setVisible(true);
 	}
 	
 	public Map getMap() {

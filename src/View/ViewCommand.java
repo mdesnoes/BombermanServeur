@@ -3,14 +3,9 @@ package View;
 import Controller.ControllerBombermanGame;
 import Controller.InterfaceController;
 import Model.Game;
-import Model.ModeJeu;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Observable;
@@ -23,7 +18,7 @@ public class ViewCommand extends JFrame implements Observer {
 	private JLabel _labelTurn;					// Le label qui affiche le tour courant
 	private JSlider _slider;					// Le slider qui affiche la vitesse des tours en seconde
 	private ControllerBombermanGame _controllerGame;
-	private String _layoutGame;
+	private String _layoutGame = null;
 	
 	public ViewCommand(InterfaceController controllerGame, Game game) {
 		this._controllerGame = (ControllerBombermanGame) controllerGame;
@@ -48,109 +43,111 @@ public class ViewCommand extends JFrame implements Observer {
 		if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			this._layoutGame = fc.getSelectedFile().getName();
 		}
-		
-		JPanel panelPrincipal = new JPanel();
-		panelPrincipal.setLayout(new GridLayout(2,1));
-		JPanel panelButton = new JPanel();		
-		panelButton.setLayout(new GridLayout(1,4));
-		Icon icon_restart = new ImageIcon("icones/icon_restart.png");
-		JButton buttonRestart = new JButton(icon_restart);
-		Icon icon_run = new ImageIcon("icones/icon_run.png");
-		JButton buttonRun = new JButton(icon_run);
-		Icon icon_step = new ImageIcon("icones/icon_step.png");
-		JButton buttonStep = new JButton(icon_step);
-		Icon icon_stop = new ImageIcon("icones/icon_pause.png");
-		JButton buttonStop = new JButton(icon_stop);
-		
-		//Permet d'appeler le controleur afin d'initialiser le jeu
-		buttonRestart.addActionListener(evenement -> {
-			_controllerGame.start();
-			buttonRestart.setEnabled(false);
-			buttonRun.setEnabled(true);
-			buttonStep.setEnabled(true);
-			buttonStop.setEnabled(true);
-		});
-		
-		//Permet d'appeler le controleur afin de demarrer le jeu
-		buttonRun.addActionListener(evenement -> {
-			_controllerGame.run();
-			buttonRestart.setEnabled(false);
+
+		if(this._layoutGame != null && this._layoutGame.endsWith(".lay")) {
+			JPanel panelPrincipal = new JPanel();
+			panelPrincipal.setLayout(new GridLayout(2,1));
+			JPanel panelButton = new JPanel();		
+			panelButton.setLayout(new GridLayout(1,4));
+			Icon icon_restart = new ImageIcon("./icones/icon_restart.png");
+			JButton buttonRestart = new JButton(icon_restart);
+			Icon icon_run = new ImageIcon("./icones/icon_run.png");
+			JButton buttonRun = new JButton(icon_run);
+			Icon icon_step = new ImageIcon("./icones/icon_step.png");
+			JButton buttonStep = new JButton(icon_step);
+			Icon icon_stop = new ImageIcon("./icones/icon_pause.png");
+			JButton buttonStop = new JButton(icon_stop);
+			
+			//Permet d'appeler le controleur afin d'initialiser le jeu
+			buttonRestart.addActionListener(evenement -> {
+				_controllerGame.start();
+				buttonRestart.setEnabled(false);
+				buttonRun.setEnabled(true);
+				buttonStep.setEnabled(true);
+				buttonStop.setEnabled(true);
+			});
+			
+			//Permet d'appeler le controleur afin de demarrer le jeu
+			buttonRun.addActionListener(evenement -> {
+				_controllerGame.run();
+				buttonRestart.setEnabled(false);
+				buttonRun.setEnabled(false);
+				buttonStep.setEnabled(false);
+				buttonStop.setEnabled(true);
+			});
+			
+			//Permet d'appeler le controleur afin de passer au tour suivant
+			buttonStep.addActionListener(evenement -> {
+				_controllerGame.step();
+				buttonRestart.setEnabled(true);
+				buttonRun.setEnabled(true);
+				buttonStep.setEnabled(true);
+				buttonStop.setEnabled(false);
+			});
+			
+			//Permet d'appeler le controleur afin de faire une pause
+			buttonStop.addActionListener(evenement -> {
+				_controllerGame.stop();
+				buttonRestart.setEnabled(true);
+				buttonRun.setEnabled(true);
+				buttonStep.setEnabled(true);
+				buttonStop.setEnabled(false);
+			});
+			
+			buttonRestart.setEnabled(true);
 			buttonRun.setEnabled(false);
 			buttonStep.setEnabled(false);
-			buttonStop.setEnabled(true);
-		});
-		
-		//Permet d'appeler le controleur afin de passer au tour suivant
-		buttonStep.addActionListener(evenement -> {
-			_controllerGame.step();
-			buttonRestart.setEnabled(true);
-			buttonRun.setEnabled(true);
-			buttonStep.setEnabled(true);
 			buttonStop.setEnabled(false);
-		});
-		
-		//Permet d'appeler le controleur afin de faire une pause
-		buttonStop.addActionListener(evenement -> {
-			_controllerGame.stop();
-			buttonRestart.setEnabled(true);
-			buttonRun.setEnabled(true);
-			buttonStep.setEnabled(true);
-			buttonStop.setEnabled(false);
-		});
-		
-		buttonRestart.setEnabled(true);
-		buttonRun.setEnabled(false);
-		buttonStep.setEnabled(false);
-		buttonStop.setEnabled(false);
-		panelButton.add(buttonRestart);
-		panelButton.add(buttonRun);
-		panelButton.add(buttonStep);
-		panelButton.add(buttonStop);
-		JPanel panelSliderLabel = new JPanel();
-		panelSliderLabel.setLayout(new GridLayout(1,2));
-		JPanel panelSlider = new JPanel();
-		panelSlider.setLayout(new GridLayout(2,2));
-		JLabel labelSlider = new JLabel("Number of turns par second");
-		labelSlider.setHorizontalAlignment(JLabel.CENTER);
-		panelSlider.add(labelSlider);
-		this._slider = new JSlider(JSlider.HORIZONTAL,SPEEDMIN,SPEEDMAX,SPEEDMIN);
-		this._slider.setPaintTicks(true);
-		this._slider.setPaintLabels(true);
-		this._slider.setMinorTickSpacing(SPEEDMIN);
-		this._slider.setMajorTickSpacing(SPEEDMIN);
-		this._slider.setValue((int)this._controllerGame.getTime()/1000);
+			panelButton.add(buttonRestart);
+			panelButton.add(buttonRun);
+			panelButton.add(buttonStep);
+			panelButton.add(buttonStop);
+			JPanel panelSliderLabel = new JPanel();
+			panelSliderLabel.setLayout(new GridLayout(1,2));
+			JPanel panelSlider = new JPanel();
+			panelSlider.setLayout(new GridLayout(2,2));
+			JLabel labelSlider = new JLabel("Number of turns par second");
+			labelSlider.setHorizontalAlignment(JLabel.CENTER);
+			panelSlider.add(labelSlider);
+			this._slider = new JSlider(JSlider.HORIZONTAL,SPEEDMIN,SPEEDMAX,SPEEDMIN);
+			this._slider.setPaintTicks(true);
+			this._slider.setPaintLabels(true);
+			this._slider.setMinorTickSpacing(SPEEDMIN);
+			this._slider.setMajorTickSpacing(SPEEDMIN);
+			this._slider.setValue((int)this._controllerGame.getTime()/1000);
 
-		//Permet d'appeler le constructeur afin de modifier le temps des tours
-		this._slider.addChangeListener(arg0 -> _controllerGame.setTime(_controllerGame.getInitTime()/_slider.getValue()));
-		
-		panelSlider.add(this._slider);
-		
-		JPanel panelLabel = new JPanel();
-		panelLabel.setLayout(new GridLayout(2,1));
-		
-		this._labelTurn = new JLabel("Turn : 0");
-		this._labelTurn.setHorizontalAlignment(JLabel.CENTER);
-		this._labelTurn.setVerticalAlignment(JLabel.CENTER);
-		
-		JButton buttonClose = new JButton("Quitter le jeu");
-		buttonClose.addActionListener(evenement -> {
-			setVisible(false);
-			_controllerGame.getViewBombGame().setVisible(false);
-			if(_controllerGame.getViewModeInteractif() != null) {
-				_controllerGame.getViewModeInteractif().setVisible(false);
-			}
-		});
-		
-		panelLabel.add(this._labelTurn);
-		panelLabel.add(buttonClose);
-		
-		panelSliderLabel.add(panelSlider);
-		panelSliderLabel.add(panelLabel);
-		panelPrincipal.add(panelButton);
-		panelPrincipal.add(panelSliderLabel);
-		
-		this.setContentPane(panelPrincipal);
-		this.setVisible(true);
+			//Permet d'appeler le constructeur afin de modifier le temps des tours
+			this._slider.addChangeListener(arg0 -> _controllerGame.setTime(_controllerGame.getInitTime()/_slider.getValue()));
+			
+			panelSlider.add(this._slider);
+			
+			JPanel panelLabel = new JPanel();
+			panelLabel.setLayout(new GridLayout(2,1));
+			
+			this._labelTurn = new JLabel("Turn : 0");
+			this._labelTurn.setHorizontalAlignment(JLabel.CENTER);
+			this._labelTurn.setVerticalAlignment(JLabel.CENTER);
+			
+			JButton buttonClose = new JButton("Quitter le jeu");
+			buttonClose.addActionListener(evenement -> {
+				setVisible(false);
+				_controllerGame.getViewBombGame().setVisible(false);
+				if(_controllerGame.getViewModeInteractif() != null) {
+					_controllerGame.getViewModeInteractif().setVisible(false);
+				}
+			});
+			
+			panelLabel.add(this._labelTurn);
+			panelLabel.add(buttonClose);
+			
+			panelSliderLabel.add(panelSlider);
+			panelSliderLabel.add(panelLabel);
+			panelPrincipal.add(panelButton);
+			panelPrincipal.add(panelSliderLabel);
+			
+			this.setContentPane(panelPrincipal);
+			this.setVisible(true);
+		}
 	}
 
 	public String[] getLayouts() {

@@ -9,6 +9,7 @@ import View.InfoItem;
 import View.Map;
 import View.ViewBombermanGame;
 import View.ViewCommand;
+import View.ViewConnexion;
 import View.ViewModeInteractif;
 
 public class ControllerBombermanGame implements InterfaceController {
@@ -20,10 +21,15 @@ public class ControllerBombermanGame implements InterfaceController {
 	
 	public ControllerBombermanGame(BombermanGame bombGame) {
 		this._bombGame = bombGame;
+		
+		new ViewConnexion(this);
+	}
+	
+	public void createView() {
 		// En mode PERCEPTRON, on n'affiche pas les views (pour faire les simulations)
-		if(bombGame.getModeJeu() != ModeJeu.PERCEPTRON) {
-			this._viewCommand = new ViewCommand(this, bombGame);
-			this._viewBombGame = new ViewBombermanGame(this, bombGame);
+		if(this._bombGame.getModeJeu() != ModeJeu.PERCEPTRON) {
+			this._viewCommand = new ViewCommand(this, this._bombGame);
+			this._viewBombGame = new ViewBombermanGame(this, this._bombGame);
 		}
 	}
 	
