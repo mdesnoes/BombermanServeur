@@ -1,11 +1,11 @@
 import java.util.ArrayList;
 
-import Model.BombermanGame;
-import Model.ModeJeu;
-import Strategy.PutBombStrategy;
-import Strategy.RandomStrategy;
-import Strategy.Strategy;
-import View.ViewBombermanGame;
+import com.projetBomberman.modele.BombermanGame;
+import com.projetBomberman.modele.ModeJeu;
+import com.projetBomberman.strategy.PutBombStrategy;
+import com.projetBomberman.strategy.RandomStrategy;
+import com.projetBomberman.strategy.Strategy;
+import com.projetBomberman.view.ViewBombermanGame;
 
 public class Test {
 
