@@ -12,7 +12,7 @@ public class Test {
 	public static void main(String[] args) {
 	
 		//Test mode Normal
-		BombermanGame bombGame = new BombermanGame(ModeJeu.NORMAL, new PutBombStrategy(),1000);
+		BombermanGame bombGame = new BombermanGame(ModeJeu.SOLO, new PutBombStrategy(),1000);
 		
 		//Test mode Interactif
 		/*

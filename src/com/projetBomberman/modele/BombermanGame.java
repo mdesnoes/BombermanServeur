@@ -1,6 +1,8 @@
 package com.projetBomberman.modele;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 
 import com.projetBomberman.controller.ControllerBombermanGame;
 import com.projetBomberman.factory.AgentFactory;
@@ -8,6 +10,8 @@ import com.projetBomberman.factory.FactoryProvider;
 import com.projetBomberman.strategy.*;
 import com.projetBomberman.view.InfoAgent;
 import com.projetBomberman.view.ViewGagnant;
+import com.projetProgReseau.entity.Partie;
+import com.projetProgReseau.metier.PartieForm;
 
 public class BombermanGame extends Game {
 
@@ -27,12 +31,17 @@ public class BombermanGame extends Game {
 	private static final int MAX_RAJION_RADIO_TOWER = 10;
 	private int reward = 0;
 	private Strategy agentStrategy;
+	
+	private Timestamp dateDebut;
 
 	public BombermanGame(ModeJeu mode, Strategy agentStrategy, int maxturn) {
 		super(maxturn);
 		this.mode = mode;
 		this._controllerBombGame = new ControllerBombermanGame(this);
 		this.agentStrategy = agentStrategy;
+		
+		Date dateCourante = new Date();
+		this.dateDebut = new Timestamp(dateCourante.getTime());
 	}
 
 	public void initialize_game() {
@@ -333,7 +342,13 @@ public class BombermanGame extends Game {
 
 	public void gameOver() {
 		System.out.println("Fin du jeu");
-
+		
+		Partie partie = new Partie();
+		partie.setDateDebut(this.dateDebut);
+		partie.setVainqueur("");
+		PartieForm partieForm = new PartieForm();
+		partieForm.enregistrerPartie(partie);
+		
 		if(this._listAgentsBomberman.size() <= 0) {
 			System.out.println("Victoire des agents PNJ !");
 			if(this.mode != ModeJeu.PERCEPTRON) {

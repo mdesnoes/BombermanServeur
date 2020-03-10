@@ -16,7 +16,7 @@ import javax.swing.JTextField;
 
 import com.projetBomberman.controller.ControllerBombermanGame;
 import com.projetProgReseau.client.Client;
-import com.projetProgReseau.metier.ConnexionForm;
+import com.projetProgReseau.metier.UtilisateurForm;
 
 
 public class ViewConnexion extends JFrame {
@@ -82,11 +82,10 @@ public class ViewConnexion extends JFrame {
 
 		buttonConnexion.addActionListener(evenement -> {
 			
-			ConnexionForm form = new ConnexionForm(fieldPseudo.getText(), fieldPassword.getText());
-			
-			if(form.verifConnexion()) {
+			UtilisateurForm form = new UtilisateurForm();
+			if(form.verifConnexion(fieldPseudo.getText(), fieldPassword.getText())) {
 				System.out.println("Connexion acceptée");
-				Client c = new Client(controllerBombGame, fieldPseudo.getText()+","+fieldPseudo.getText());
+				Client c = new Client(controllerBombGame, fieldPseudo.getText());
 				Thread t = new Thread(c);
 				t.start();
 				setVisible(false);
