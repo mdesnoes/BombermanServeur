@@ -1,18 +1,18 @@
 import java.util.ArrayList;
 
-import Model.BombermanGame;
-import Model.ModeJeu;
-import Strategy.PutBombStrategy;
-import Strategy.RandomStrategy;
-import Strategy.Strategy;
-import View.ViewBombermanGame;
+import com.projetBomberman.modele.BombermanGame;
+import com.projetBomberman.modele.ModeJeu;
+import com.projetBomberman.strategy.PutBombStrategy;
+import com.projetBomberman.strategy.RandomStrategy;
+import com.projetBomberman.strategy.Strategy;
+import com.projetBomberman.view.ViewBombermanGame;
 
 public class Test {
 
 	public static void main(String[] args) {
 	
 		//Test mode Normal
-		BombermanGame bombGame = new BombermanGame(ModeJeu.NORMAL, new PutBombStrategy(),1000);
+		BombermanGame bombGame = new BombermanGame(ModeJeu.SOLO, new PutBombStrategy(),1000);
 		
 		//Test mode Interactif
 		/*

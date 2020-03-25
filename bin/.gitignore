@@ -1,9 +1,7 @@
+/client/
+/View/
+/metier/
+/com/
 /Model/
-/Controller/
-/Factory/
 /Strategy/
 /perceptron/
-/View/
-/icones/
-/image/
-/layout/
