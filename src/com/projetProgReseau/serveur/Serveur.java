@@ -9,49 +9,75 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.projetBomberman.modele.BombermanGame;
+import com.projetBomberman.modele.ModeJeu;
+import com.projetBomberman.strategy.PutBombStrategy;
+import com.projetBomberman.strategy.Strategy;
+
 public class Serveur implements Runnable {
 	
-	public Socket so;
+	public Socket connexion;
 	public List<Socket> listSockets = new ArrayList<Socket>();
-
+	private BufferedReader entree;
+	private DataOutputStream sortie;
+	private BombermanGame game;
 	
 	public Serveur(Socket s, List<Socket> listSockets){
-		this.so=s;
+		this.connexion=s;
 		this.listSockets = listSockets;
+		
+		try {
+			this.entree = new BufferedReader(new InputStreamReader(this.connexion.getInputStream()));
+			this.sortie = new DataOutputStream(this.connexion.getOutputStream());
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
 	public void run() {
-		BufferedReader entree;
-		DataOutputStream sortie;
-		String ch; // la chaîne reçue
-		
-		int i=0; // Nb de message
-		String nomUser = null; // Nom de l'utilisateur
+		String ch;
 		
 		try {
-			entree = new BufferedReader(new InputStreamReader(so.getInputStream()));
-			sortie = new DataOutputStream(so.getOutputStream());
-
+			ch = entree.readLine();
+			System.out.println("Connexion de " + ch + " sur le serveur !");
+			
+			this.game = new BombermanGame(ModeJeu.SOLO, new PutBombStrategy(), 1000);
+			
 			while(true) {				
-				ch = entree.readLine(); // on lit ce qui arrive
+				ch = entree.readLine();
 				
-				sortie.writeUTF("Connexion_OK");
+				sortie.writeUTF(ch);
 				
-//				for(Socket so : this.listSockets) {
-//					if(so != this.so) {
-//						DataOutputStream sortieSocket = new DataOutputStream (so.getOutputStream());
-//						sortieSocket.writeUTF(ch);
-//					}
-//				}
-				
-				++i;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	private void notifyAllClient(String ch) {
+		try {
+			for(Socket so : this.listSockets) {
+				if(so != this.connexion && !so.isClosed()) {
+					DataOutputStream sortieSocket = new DataOutputStream (so.getOutputStream());
+					sortieSocket.writeUTF(ch);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void terminer() {
+		try{
+	        if(this.connexion != null) {
+	        	this.connexion.close();
+	        }
+	    }
+	    catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
 	
 	public static void main(String[] argu) {
 		int p; // le port d’écoute
@@ -71,8 +97,8 @@ public class Serveur implements Runnable {
 					
 					listClients.add(so);
 					System.out.println(listClients);
-					Serveur serv = new Serveur(so, listClients);
 					
+					Serveur serv = new Serveur(so, listClients);
 					Thread t = new Thread(serv);
 					t.start();
 				}
@@ -82,7 +108,7 @@ public class Serveur implements Runnable {
 				System.out.println("problème\n"+e.getMessage());
 			}
 		} else { 
-			System.out.println("syntaxe d’appel java servTexte port\n");
+			System.out.println("syntaxe d’appel java Serveur port\n");
 		} 
 	}
 }

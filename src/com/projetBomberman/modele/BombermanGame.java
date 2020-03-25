@@ -10,8 +10,7 @@ import com.projetBomberman.factory.FactoryProvider;
 import com.projetBomberman.strategy.*;
 import com.projetBomberman.view.InfoAgent;
 import com.projetBomberman.view.ViewGagnant;
-import com.projetProgReseau.entity.Partie;
-import com.projetProgReseau.metier.PartieForm;
+
 
 public class BombermanGame extends Game {
 
@@ -343,11 +342,11 @@ public class BombermanGame extends Game {
 	public void gameOver() {
 		System.out.println("Fin du jeu");
 		
-		Partie partie = new Partie();
-		partie.setDateDebut(this.dateDebut);
-		partie.setVainqueur("");
-		PartieForm partieForm = new PartieForm();
-		partieForm.enregistrerPartie(partie);
+//		Partie partie = new Partie();
+//		partie.setDateDebut(this.dateDebut);
+//		partie.setVainqueur("");
+//		PartieForm partieForm = new PartieForm();
+//		partieForm.enregistrerPartie(partie);
 		
 		if(this._listAgentsBomberman.size() <= 0) {
 			System.out.println("Victoire des agents PNJ !");

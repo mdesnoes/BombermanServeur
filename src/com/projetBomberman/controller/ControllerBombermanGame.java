@@ -9,7 +9,6 @@ import com.projetBomberman.view.InfoItem;
 import com.projetBomberman.view.Map;
 import com.projetBomberman.view.ViewBombermanGame;
 import com.projetBomberman.view.ViewCommand;
-import com.projetBomberman.view.ViewConnexion;
 import com.projetBomberman.view.ViewModeInteractif;
 
 public class ControllerBombermanGame implements InterfaceController {
@@ -20,9 +19,9 @@ public class ControllerBombermanGame implements InterfaceController {
 	private ViewModeInteractif _viewModeInteractif;
 	
 	public ControllerBombermanGame(BombermanGame bombGame) {
-		this._bombGame = bombGame;
+		this._bombGame = bombGame;		
 		
-		new ViewConnexion(this);
+		createView();
 	}
 	
 	public void createView() {
