@@ -131,11 +131,7 @@ public class ViewCommand extends JFrame implements Observer {
 			
 			JButton buttonClose = new JButton("Quitter le jeu");
 			buttonClose.addActionListener(evenement -> {
-				setVisible(false);
-				_controllerGame.getViewBombGame().setVisible(false);
-				if(_controllerGame.getViewModeInteractif() != null) {
-					_controllerGame.getViewModeInteractif().setVisible(false);
-				}
+				_controllerGame.quitter();
 			});
 			
 			panelLabel.add(this._labelTurn);

@@ -64,12 +64,7 @@ public class ViewGagnant extends JFrame {
 		});
 		
 		buttonFermer.addActionListener(evenement -> {
-			setVisible(false);
-			contBombGame.getViewBombGame().setVisible(false);
-			contBombGame.getViewCommand().setVisible(false);
-			if(contBombGame.getViewModeInteractif() != null) {
-				contBombGame.getViewModeInteractif().setVisible(false);
-			}
+			contBombGame.quitter();
 		});
 		panelPrincipal.add(panelButton);
 		

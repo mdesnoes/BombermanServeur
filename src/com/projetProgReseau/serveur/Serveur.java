@@ -20,6 +20,8 @@ public class Serveur implements Runnable {
 	public List<Socket> listSockets = new ArrayList<Socket>();
 	private BufferedReader entree;
 	private DataOutputStream sortie;
+	
+	private String nomClient;
 	private BombermanGame game;
 	
 	public Serveur(Socket s, List<Socket> listSockets){
@@ -39,10 +41,11 @@ public class Serveur implements Runnable {
 		String ch;
 		
 		try {
-			ch = entree.readLine();
-			System.out.println("Connexion de " + ch + " sur le serveur !");
+			nomClient = entree.readLine();
+			System.out.println("Connexion de " + nomClient + " sur le serveur !");
+			notifyAllClient("Connexion de " + nomClient);
 			
-			this.game = new BombermanGame(ModeJeu.SOLO, new PutBombStrategy(), 1000);
+			this.game = new BombermanGame(this.sortie, ModeJeu.SOLO, new PutBombStrategy(), 1000);
 			
 			while(true) {				
 				ch = entree.readLine();
@@ -52,6 +55,7 @@ public class Serveur implements Runnable {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			terminer();
 		}
 	}
 	
@@ -65,6 +69,7 @@ public class Serveur implements Runnable {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			terminer();
 		}
 	}
 	

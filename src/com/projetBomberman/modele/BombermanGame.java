@@ -1,5 +1,6 @@
 package com.projetBomberman.modele;
 
+import java.io.DataOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,10 +34,10 @@ public class BombermanGame extends Game {
 	
 	private Timestamp dateDebut;
 
-	public BombermanGame(ModeJeu mode, Strategy agentStrategy, int maxturn) {
+	public BombermanGame(DataOutputStream sortie, ModeJeu mode, Strategy agentStrategy, int maxturn) {
 		super(maxturn);
 		this.mode = mode;
-		this._controllerBombGame = new ControllerBombermanGame(this);
+		this._controllerBombGame = new ControllerBombermanGame(this, sortie);
 		this.agentStrategy = agentStrategy;
 		
 		Date dateCourante = new Date();

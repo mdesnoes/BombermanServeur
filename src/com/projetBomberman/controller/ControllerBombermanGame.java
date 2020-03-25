@@ -1,5 +1,7 @@
 package com.projetBomberman.controller;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.projetBomberman.modele.*;
@@ -17,9 +19,12 @@ public class ControllerBombermanGame implements InterfaceController {
 	private ViewCommand _viewCommand;
 	private ViewBombermanGame _viewBombGame;
 	private ViewModeInteractif _viewModeInteractif;
+	private DataOutputStream sortie;
 	
-	public ControllerBombermanGame(BombermanGame bombGame) {
-		this._bombGame = bombGame;		
+	
+	public ControllerBombermanGame(BombermanGame bombGame, DataOutputStream sortie) {
+		this._bombGame = bombGame;
+		this.sortie = sortie;
 		
 		createView();
 	}
@@ -32,53 +37,60 @@ public class ControllerBombermanGame implements InterfaceController {
 		}
 	}
 	
-	public Map getMap() {
-		//En mode PERCEPTRON, la map est 'mapPerceptron'
-		if(this._bombGame.getModeJeu() == ModeJeu.PERCEPTRON) {
-			try {
-				return new Map("layout/mapPerceptron");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return this._viewBombGame.getMap();
-	}
-	
 	public void start() {
 		this._bombGame.init();
+		
+		try {
+			this.sortie.writeUTF("INITIALISATION DE LA PARTIE");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void step() {
 		this._bombGame.step();
+		
+		try {
+			this.sortie.writeUTF("AVANCEMENT DE LA PARTIE");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void run() {
 		this._bombGame.launch();
+		
+		try {
+			this.sortie.writeUTF("DEMARRAGE DE LA PARTIE");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void stop() {
 		this._bombGame.stop();
-	}
-
-	public void setTime(long time) {
-		this._bombGame.setTime(time);
-	}
-
-	public long getTime() {
-		return _bombGame.getTime();
-	}
-
-	public int getInitTime() {
-		return Game.INIT_TIME;
-	}
-
-	public String getLayout() {
-		if(this._bombGame.getModeJeu() == ModeJeu.PERCEPTRON) {
-			return "mapPerceptron";
+		
+		try {
+			this.sortie.writeUTF("PARTIE EN PAUSE");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return this._viewCommand.getLayoutGame();
 	}
 	
+	public void quitter() {
+		this._viewCommand.setVisible(false);
+		this._viewBombGame.setVisible(false);
+		if(this._viewModeInteractif != null) {
+			this._viewModeInteractif.setVisible(false);
+		}
+		
+		try {
+			this.sortie.writeUTF("DECONNEXION");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	
 	//Permet de renseigner les nouvelles coordonnées des agents à la liste d'InfoAgent et retourner cette liste
 	public ArrayList<InfoAgent> getListInfoAgent() {
@@ -117,29 +129,51 @@ public class ControllerBombermanGame implements InterfaceController {
 		return infoBombList;
 	}
 	
+	public Map getMap() {
+		//En mode PERCEPTRON, la map est 'mapPerceptron'
+		if(this._bombGame.getModeJeu() == ModeJeu.PERCEPTRON) {
+			try {
+				return new Map("layout/mapPerceptron");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return this._viewBombGame.getMap();
+	}
+	
+	public String getLayout() {
+		if(this._bombGame.getModeJeu() == ModeJeu.PERCEPTRON) {
+			return "mapPerceptron";
+		}
+		return this._viewCommand.getLayoutGame();
+	}
+	
 	public boolean[][] getListBreakableWall() {
 		return this._bombGame.getListBreakableWall();
 	}
-	
-	
 	public void setViewModeInteractif() {
 		this._viewModeInteractif = ViewModeInteractif.getInstance();
 	}
-	
 	public void setViewBombermanGame(ViewBombermanGame vbombGame) {
 		this._viewBombGame = vbombGame;
 	}
-
 	public ViewModeInteractif getViewModeInteractif() {
 		return this._viewModeInteractif;
 	}
-	
 	public ViewCommand getViewCommand() {
 		return this._viewCommand;
 	}
-
 	public ViewBombermanGame getViewBombGame() {
 		return this._viewBombGame;
+	}
+	public void setTime(long time) {
+		this._bombGame.setTime(time);
+	}
+	public long getTime() {
+		return _bombGame.getTime();
+	}
+	public int getInitTime() {
+		return Game.INIT_TIME;
 	}
 
 }
