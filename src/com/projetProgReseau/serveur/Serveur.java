@@ -9,12 +9,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.projetBomberman.modele.BombermanGame;
-import com.projetBomberman.modele.ModeJeu;
-import com.projetBomberman.strategy.PutBombStrategy;
-import com.projetBomberman.strategy.Strategy;
+import com.projetProgReseau.view.ViewConnexion;
 
 public class Serveur implements Runnable {
+	
+	private static final String MSG_DECO_CLIENT = "DECONNEXION";
 	
 	public Socket connexion;
 	public List<Socket> listSockets = new ArrayList<Socket>();
@@ -22,12 +21,13 @@ public class Serveur implements Runnable {
 	private DataOutputStream sortie;
 	
 	private String nomClient;
-	private BombermanGame game;
 	
-	public Serveur(Socket s, List<Socket> listSockets){
+	
+	public Serveur(Socket s, List<Socket> listSockets, String nom){
 		this.connexion=s;
 		this.listSockets = listSockets;
-		
+		this.nomClient = nom;
+
 		try {
 			this.entree = new BufferedReader(new InputStreamReader(this.connexion.getInputStream()));
 			this.sortie = new DataOutputStream(this.connexion.getOutputStream());
@@ -41,17 +41,17 @@ public class Serveur implements Runnable {
 		String ch;
 		
 		try {
-			nomClient = entree.readLine();
-			System.out.println("Connexion de " + nomClient + " sur le serveur !");
-			notifyAllClient("Connexion de " + nomClient);
-			
-			this.game = new BombermanGame(this.sortie, ModeJeu.SOLO, new PutBombStrategy(), 1000);
-			
+			sortie.writeUTF(nomClient);
+			System.out.println("[SERVEUR] Connexion de " + nomClient);
+						
 			while(true) {				
 				ch = entree.readLine();
 				
-				sortie.writeUTF(ch);
+				if(ch.endsWith( MSG_DECO_CLIENT )) {
+					listSockets.remove(connexion);
+				}
 				
+				System.out.println(ch);				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -89,25 +89,20 @@ public class Serveur implements Runnable {
 		ServerSocket ecoute;
 		Socket so;
 
-		List<Socket> listClients = new ArrayList<Socket>();
+		List<Socket> listeClients = new ArrayList<Socket>();
 		
 		if (argu.length == 1) {
 			try {
-				p=Integer.parseInt(argu[0]); // on récupère le port
-				ecoute = new ServerSocket(p); // on crée le serveur
+				p=Integer.parseInt(argu[0]);
+				ecoute = new ServerSocket(p);
 				System.out.println("serveur mis en place ");
 				
-				while (true) { // le serveur va attendre qu’une connexion arrive
+				while (true) {
 					so = ecoute.accept();
 					
-					listClients.add(so);
-					System.out.println(listClients);
-					
-					Serveur serv = new Serveur(so, listClients);
-					Thread t = new Thread(serv);
-					t.start();
+					/* Connexion d'un client */
+					new ViewConnexion(so, listeClients);
 				}
-//				so.close();
 
 			} catch (IOException e) { 
 				System.out.println("problème\n"+e.getMessage());
