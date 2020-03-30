@@ -6,15 +6,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.projetProgReseau.entity.Partie;
+import com.projetProgReseau.metier.PartieForm;
 import com.projetProgReseau.view.ViewConnexion;
 
 public class Serveur implements Runnable {
 	
 	private static final String MSG_DECO_CLIENT = "DECONNEXION";
-	
+	private static final String MSG_FIN_PARTIE = "FIN_PARTIE";
+	private static final String SEP_FIN_PARTIE = ">";
+	private static final String SEP_INFOS_PARTIE = ";";
 	public Socket connexion;
 	public List<Socket> listSockets = new ArrayList<Socket>();
 	private BufferedReader entree;
@@ -47,9 +52,28 @@ public class Serveur implements Runnable {
 			while(true) {				
 				ch = entree.readLine();
 				
-				if(ch.endsWith( MSG_DECO_CLIENT )) {
-					listSockets.remove(connexion);
+				switch(ch) {
+				case MSG_DECO_CLIENT: listSockets.remove(connexion); break;
+					
 				}
+				
+				/* Enregistrement des parties pour exploitation avec JEE */
+				if(ch.startsWith(MSG_FIN_PARTIE)) {
+					
+					ch = ch.substring(ch.indexOf( SEP_FIN_PARTIE ) + 1);
+					System.out.println(ch);
+					String strDateDebut = ch.split( SEP_INFOS_PARTIE )[0];
+					Timestamp dateDebut = Timestamp.valueOf(strDateDebut);
+					String vainqueur = ch.split( SEP_INFOS_PARTIE )[1];
+					
+					Partie partie = new Partie();
+					partie.setDateDebut(dateDebut);
+					partie.setVainqueur(vainqueur);
+					PartieForm form = new PartieForm();
+					form.enregistrerPartie(partie);
+					
+				}
+				
 				
 				System.out.println(ch);				
 			}
