@@ -20,6 +20,8 @@ public class Serveur implements Runnable {
 	private static final String MSG_FIN_PARTIE = "FIN_PARTIE";
 	private static final String SEP_FIN_PARTIE = ">";
 	private static final String SEP_INFOS_PARTIE = ";";
+	
+	
 	public Socket connexion;
 	public List<Socket> listSockets = new ArrayList<Socket>();
 	private BufferedReader entree;
@@ -48,35 +50,36 @@ public class Serveur implements Runnable {
 		try {
 			sortie.writeUTF(nomClient);
 			System.out.println("[SERVEUR] Connexion de " + nomClient);
-						
+			notifyAllClient("[SERVEUR] Connexion de " + nomClient);
+			
 			while(true) {				
 				ch = entree.readLine();
 				
-				switch(ch) {
-				case MSG_DECO_CLIENT: listSockets.remove(connexion); break;
+				if(ch != null) {
 					
-				}
-				
-				/* Enregistrement des parties pour exploitation avec JEE */
-				if(ch.startsWith(MSG_FIN_PARTIE)) {
+					if(ch.endsWith(MSG_DECO_CLIENT)) {
+						listSockets.remove(connexion);
+					}
+					/* Enregistrement des parties pour exploitation avec JEE */
+					else if(ch.startsWith(MSG_FIN_PARTIE)) {
+						
+						ch = ch.substring(ch.indexOf( SEP_FIN_PARTIE ) + 1);
+						String strDateDebut = ch.split( SEP_INFOS_PARTIE )[0];
+						Timestamp dateDebut = Timestamp.valueOf(strDateDebut);
+						String vainqueur = ch.split( SEP_INFOS_PARTIE )[1];
+						
+						Partie partie = new Partie();
+						partie.setDateDebut(dateDebut);
+						partie.setVainqueur(vainqueur);
+						PartieForm form = new PartieForm();
+						form.enregistrerPartie(partie);
+	
+					}
 					
-					ch = ch.substring(ch.indexOf( SEP_FIN_PARTIE ) + 1);
 					System.out.println(ch);
-					String strDateDebut = ch.split( SEP_INFOS_PARTIE )[0];
-					Timestamp dateDebut = Timestamp.valueOf(strDateDebut);
-					String vainqueur = ch.split( SEP_INFOS_PARTIE )[1];
-					
-					Partie partie = new Partie();
-					partie.setDateDebut(dateDebut);
-					partie.setVainqueur(vainqueur);
-					PartieForm form = new PartieForm();
-					form.enregistrerPartie(partie);
-					
 				}
-				
-				
-				System.out.println(ch);				
 			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 			terminer();

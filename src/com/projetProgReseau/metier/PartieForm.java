@@ -52,7 +52,7 @@ public class PartieForm {
 		            response.append(line);
 		        }
 		        in.close();
-		        System.out.println("La partie " + response.toString() + " a été enregistré");
+		        System.out.println("[SERVEUR] La partie " + response.toString() + " a été enregistrée");
 		        
 		        connection.disconnect();
 			} catch (MalformedURLException e) {
