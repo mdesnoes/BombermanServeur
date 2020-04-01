@@ -2,7 +2,7 @@ package com.projetProgReseau.metier;
 
 import org.jasypt.util.text.BasicTextEncryptor;
 
-
+/* singleton */
 public class MotDePasseEncryptor {
 	
 	private static MotDePasseEncryptor uniqueInstance = null;
@@ -21,7 +21,6 @@ public class MotDePasseEncryptor {
     	if(uniqueInstance == null) {
 			uniqueInstance = new MotDePasseEncryptor();
 		}
-		
 		return uniqueInstance;
     }
     
