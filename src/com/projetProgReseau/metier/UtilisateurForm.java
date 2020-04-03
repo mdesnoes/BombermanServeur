@@ -29,7 +29,7 @@ public class UtilisateurForm {
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 				connection.setRequestMethod("GET");
 				connection.setRequestProperty("Accept", "application/json");
-	            if (connection.getResponseCode() != 200) {
+	            if (connection.getResponseCode() != 200 && connection.getResponseCode() != 204) {
 	                throw new RuntimeException("Failed : HTTP Error code : " + connection.getResponseCode());
 	            }
 				in = new BufferedReader(new InputStreamReader(url.openStream()));

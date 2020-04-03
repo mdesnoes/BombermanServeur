@@ -38,11 +38,7 @@ public abstract class Game implements Runnable {
 		}
 		else {
 			this.isRunning = false;
-			try {
-				gameOver();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			gameOver();
 		}
 	}
 	
@@ -77,7 +73,7 @@ public abstract class Game implements Runnable {
 	public abstract void initialize_game();
 	public abstract void takeTurn();
 	public abstract boolean gameContinue();
-	public abstract void gameOver() throws IOException;
+	public abstract void gameOver();
 
 	
 	

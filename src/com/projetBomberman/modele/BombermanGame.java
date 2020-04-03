@@ -176,7 +176,7 @@ public class BombermanGame extends Game {
 			if(this.listAgentsPNJ.size() > 0) {
 				return true;
 			}
-			else return false;
+			return false;
 		}
 		if(this.listAgentsBomberman.isEmpty()) {
 			return false;
@@ -185,34 +185,50 @@ public class BombermanGame extends Game {
 	}
 	
 
-	public void gameOver() throws IOException {
+	public void gameOver() {
 		System.out.println("[SERVEUR] Fin de la partie du client " + this.nomJoueur);
 		
 		String vainqueur;
-		if(this.listAgentsBomberman.size() <= 0) {
-			vainqueur = "PNJ";
-
-			this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE + "PNJ" + SEP_DONNEES_FIN_PARTIE + "black");
-		}
-		else {
-			AgentBomberman bombermanVainqueur = this.listAgentsBomberman.get(0);
-			if(bombermanVainqueur == this.bombermanJoueur1) {
-				vainqueur = this.nomJoueur;
-			} else {
-				vainqueur = "IA";
+		if(this.getTurn() >= this.getMaxturn()) {
+			try {
+				this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE + "Pas de gagnant" + SEP_DONNEES_FIN_PARTIE + "black");
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			
-			String color = colorAgentToColor(bombermanVainqueur.getColor());
-			this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE 
-					+ bombermanVainqueur.getColor().toString() + SEP_DONNEES_FIN_PARTIE + color);
+		} else {
+			if(this.listAgentsBomberman.size() <= 0) {
+				vainqueur = "PNJ";
+	
+				try {
+					this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE + "PNJ" + SEP_DONNEES_FIN_PARTIE + "black");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				AgentBomberman bombermanVainqueur = this.listAgentsBomberman.get(0);
+				if(bombermanVainqueur == this.bombermanJoueur1) {
+					vainqueur = this.nomJoueur;
+				} else {
+					vainqueur = "IA";
+				}
+				
+				String color = colorAgentToColor(bombermanVainqueur.getColor());
+				try {
+					this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE 
+							+ bombermanVainqueur.getColor().toString() + SEP_DONNEES_FIN_PARTIE + color);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+	
+			/* Enregistrement de la partie pour exploitation avec JEE */
+			Partie partie = new Partie();
+			partie.setDateDebut(dateDebutPartie);
+			partie.setVainqueur(vainqueur);
+			PartieForm form = new PartieForm();
+			form.enregistrerPartie(partie);
 		}
-
-		/* Enregistrement de la partie pour exploitation avec JEE */
-		Partie partie = new Partie();
-		partie.setDateDebut(dateDebutPartie);
-		partie.setVainqueur(vainqueur);
-		PartieForm form = new PartieForm();
-		form.enregistrerPartie(partie);
 	}
 	
 	public String colorAgentToColor(ColorAgent colorAgent) {
@@ -399,9 +415,4 @@ public class BombermanGame extends Game {
 		this.map = map;
 	}
 
-	
-	
-	
-	
-	
 }

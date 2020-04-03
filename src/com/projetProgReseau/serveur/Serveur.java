@@ -132,7 +132,7 @@ public class Serveur implements Runnable {
 						switch(ch) {
 						case MSG_INIT_GAME:
 							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Initialisation de la partie");
-							game.initialize_game();
+							game.init();
 							break;
 						case MSG_PAUSE_GAME:
 							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Pause de la partie");
@@ -216,35 +216,5 @@ public class Serveur implements Runnable {
 	public void setSortie(DataOutputStream sortie) {
 		this.sortie = sortie;
 	}
-	
 
-	public static void main(String[] argu) {
-		
-		if (argu.length == 1) {
-			try {
-				Socket so;
-				int port = Integer.parseInt(argu[0]);
-				ServerSocket ecoute = new ServerSocket(port);
-				List<Socket> listeClients = new ArrayList<Socket>();
-				System.out.println("serveur mis en place ");
-				
-				while (true) {
-					so = ecoute.accept();
-					
-					listeClients.add(so);
-					System.out.println("Nombre de clients sur le serveur : " + listeClients.size());
-					
-					Serveur serv = new Serveur(so, listeClients);
-					Thread t = new Thread(serv);
-					t.start();
-				}
-
-			} catch (IOException e) { 
-				System.out.println("problème\n"+e.getMessage());
-			}
-		} else { 
-			System.out.println("syntaxe d’appel java Serveur port\n");
-		} 
-		
-	}
 }
