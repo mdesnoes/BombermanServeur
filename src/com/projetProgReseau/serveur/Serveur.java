@@ -13,14 +13,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.projetBomberman.modele.BombermanGame;
+import com.projetBomberman.modele.Map;
 import com.projetBomberman.modele.info.ModeJeu;
 import com.projetBomberman.strategy.BreakWallStrategy;
 import com.projetBomberman.strategy.EsquiveStrategy;
 import com.projetBomberman.strategy.PutBombStrategy;
 import com.projetBomberman.strategy.RandomStrategy;
 import com.projetBomberman.strategy.Strategy;
-import com.projetProgReseau.view.Map;
-import com.projetProgReseau.view.ViewConnexion;
+import com.projetProgReseau.metier.UtilisateurForm;
 
 
 public class Serveur implements Runnable {
@@ -34,13 +34,15 @@ public class Serveur implements Runnable {
 	private static final String BREAK_WALL_STRATEGY = "break_wall";
 	private static final String ESQUIVE_STRATEGY = "esquive";
 	
-	
 	private static final String MSG_DECO_CLIENT = "DECONNEXION";
 	private static final String MSG_INIT_GAME = "INITIALISATION";
 	private static final String MSG_PAUSE_GAME = "PAUSE";
 	private static final String MSG_ETAPE_GAME = "ETAPE";
 	private static final String MSG_DEBUT_GAME = "DEBUT";
 	private static final String REGEX_TIME = "[0-9]*";
+	
+	private static final String CONNEXION_OK = "Connexion acceptee";
+	private static final String CONNEXION_NOK = "Connexion refusee";
 	
 	
 	public Socket connexion;
@@ -49,13 +51,12 @@ public class Serveur implements Runnable {
 	private DataOutputStream sortie;
 	
 	private String nomClient;
-	BombermanGame game;
+	private BombermanGame game;
 	
 	
-	public Serveur(Socket s, List<Socket> listSockets, String nom){
+	public Serveur(Socket s, List<Socket> listSockets){
 		this.connexion=s;
 		this.listSockets = listSockets;
-		this.nomClient = nom;
 
 		try {
 			this.entree = new BufferedReader(new InputStreamReader(this.connexion.getInputStream()));
@@ -71,11 +72,26 @@ public class Serveur implements Runnable {
 		String strategy;
 		String mode;
 		int maxturn;
+		String mdp;
 		
 		try {
-			/* Recuperation du nom du client, du nombre de tour et de la strategy des agents */
-			sortie.writeUTF(nomClient);
-			System.out.println("[SERVEUR] Connexion de " + nomClient);
+			
+			/* Verification de la connexion du compte */
+			this.nomClient = entree.readLine();
+			mdp = entree.readLine();
+			while(!connexion(mdp)) {
+				System.out.println("[SERVEUR] Connexion refusée pour " + nomClient);
+				
+				this.sortie.writeUTF( CONNEXION_NOK );
+
+				this.nomClient = entree.readLine();
+				mdp = entree.readLine();
+			}
+			
+			this.sortie.writeUTF( CONNEXION_OK );
+			System.out.println("[SERVEUR] Connexion acceptée pour " + nomClient);
+			
+			/* Recuperation de la configuration du jeu : mode de jeu, nombre de tour et strategie des agents */
 			mode = entree.readLine();
 			ModeJeu modeJeu = initModeJeu(mode);
 			maxturn = Integer.parseInt( entree.readLine() );
@@ -88,11 +104,10 @@ public class Serveur implements Runnable {
 			try {
 				map = mapper.readValue(entree.readLine(), Map.class);
 			} catch (Exception e) {
-				System.out.println("ERREUR Map non trouvé");
+				System.out.println("[SERVEUR] [ERREUR] erreur : lors de l'envoie de la récupération de la map initiale");
 				e.printStackTrace();
-				System.exit(-1);
+				terminer();
 			}
-			System.out.println("Map recu avec succès");
 			
 			
 			/* Creation du l'etat du jeu initial */
@@ -106,28 +121,29 @@ public class Serveur implements Runnable {
 				if(ch != null) {
 					
 					if(ch.endsWith( MSG_DECO_CLIENT )) { /* Deconnexion du client */
-						System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Deconnexion de " + nomClient);
-						listSockets.remove(connexion);
+						System.out.println("[CLIENT " + nomClient + " > SERVEUR] Deconnexion de " + nomClient);
+						terminer();
+						break;
 					} else if(ch.matches( REGEX_TIME )) { /* Modification de la vitesse du jeu */
-						System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Modification de la vitesse de la partie");
+						System.out.println("[CLIENT " + nomClient + " > SERVEUR] Modification de la vitesse de la partie");
 						game.setTime( Long.parseLong(ch) );
 					} else { /* Action du client pour modifier l'etat du jeu */
 						
 						switch(ch) {
 						case MSG_INIT_GAME:
-							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Initialisation de la partie");
+							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Initialisation de la partie");
 							game.initialize_game();
 							break;
 						case MSG_PAUSE_GAME:
-							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Pause de la partie");
+							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Pause de la partie");
 							game.stop();
 							break;
 						case MSG_DEBUT_GAME:
-							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Lancement de la partie");
+							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Lancement de la partie");
 							game.launch();
 							break;
 						case MSG_ETAPE_GAME:
-							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Nouvelle etape de la partie");
+							System.out.println("[CLIENT " + nomClient + " > SERVEUR] Nouvelle etape de la partie");
 							game.step();
 							break;
 						}
@@ -143,6 +159,11 @@ public class Serveur implements Runnable {
 		}
 	}
 	
+	public boolean connexion(String mdp) throws IOException {
+		UtilisateurForm form = new UtilisateurForm();
+		return form.verifConnexion(this.nomClient, mdp);
+	}
+	
 	public void envoyerEtatJeu() throws IOException {
 		String gameJson = "";
 		ObjectMapper mapper = new ObjectMapper();
@@ -150,10 +171,11 @@ public class Serveur implements Runnable {
 			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 			gameJson = mapper.writeValueAsString(game);
 		} catch (JsonProcessingException e1) {
+			System.out.println("[SERVEUR] [ERREUR] erreur : lors de l'envoie de l'etat du jeu");
 			e1.printStackTrace();
+			terminer();
 		}
 		sortie.writeUTF(gameJson);
-		System.out.println("[SERVEUR] BombermanGame envoyé avec succès au client " + this.nomClient);
 	}
 	
 	
@@ -178,9 +200,8 @@ public class Serveur implements Runnable {
 	
 	private void terminer() {
 		try{
-	        if(this.connexion != null) {
-	        	this.connexion.close();
-	        }
+			listSockets.remove(this.connexion);
+	        this.connexion.close();
 	    }
 	    catch (IOException e) {
 	        e.printStackTrace();
@@ -210,8 +231,12 @@ public class Serveur implements Runnable {
 				while (true) {
 					so = ecoute.accept();
 					
-					/* Connexion d'un client */
-					new ViewConnexion(so, listeClients);
+					listeClients.add(so);
+					System.out.println("Nombre de clients sur le serveur : " + listeClients.size());
+					
+					Serveur serv = new Serveur(so, listeClients);
+					Thread t = new Thread(serv);
+					t.start();
 				}
 
 			} catch (IOException e) { 

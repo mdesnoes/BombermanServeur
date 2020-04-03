@@ -1,4 +1,4 @@
-package com.projetProgReseau.view;
+package com.projetBomberman.modele.info;
 
 import com.projetBomberman.modele.info.AgentAction;
 import com.projetBomberman.modele.info.ColorAgent;

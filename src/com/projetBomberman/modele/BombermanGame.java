@@ -10,13 +10,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.projetBomberman.factory.AgentFactory;
 import com.projetBomberman.factory.FactoryProvider;
 import com.projetBomberman.modele.info.ColorAgent;
+import com.projetBomberman.modele.info.InfoAgent;
 import com.projetBomberman.modele.info.ModeJeu;
 import com.projetBomberman.strategy.*;
 import com.projetProgReseau.entity.Partie;
 import com.projetProgReseau.metier.PartieForm;
 import com.projetProgReseau.serveur.Serveur;
-import com.projetProgReseau.view.InfoAgent;
-import com.projetProgReseau.view.Map;
 
 
 public class BombermanGame extends Game {
@@ -59,7 +58,6 @@ public class BombermanGame extends Game {
 		Date dateCourante = new Date();
 		this.dateDebutPartie = new Timestamp(dateCourante.getTime());
 		
-		System.out.println("### Jeu est initialisé pour le client " + this.nomJoueur + " ###");
 		this.listAgentsBomberman = new ArrayList<>();
 		this.listAgentsPNJ = new ArrayList<>();
 		
@@ -188,7 +186,7 @@ public class BombermanGame extends Game {
 	
 
 	public void gameOver() throws IOException {
-		System.out.println("### Fin de la partie du client " + this.nomJoueur + " ###");
+		System.out.println("[SERVEUR] Fin de la partie du client " + this.nomJoueur);
 		
 		String vainqueur;
 		if(this.listAgentsBomberman.size() <= 0) {
