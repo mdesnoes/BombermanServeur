@@ -1,12 +1,14 @@
 package com.projetBomberman.modele;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.projetBomberman.modele.info.AgentAction;
 import com.projetBomberman.modele.info.ColorAgent;
 import com.projetBomberman.strategy.Strategy;
 
+
 public abstract class AgentPNJ extends Agent {
 
-	AgentPNJ(int pos_x, int pos_y, char type, ColorAgent color, Strategy strategy) {
+	public AgentPNJ(int pos_x, int pos_y, char type, ColorAgent color, Strategy strategy) {
 		super(pos_x, pos_y, type, color, strategy);
 	}
 	
@@ -86,6 +88,7 @@ public abstract class AgentPNJ extends Agent {
 		return false;
 	}
 	
+	@JsonIgnore
 	public boolean isInvincible() {
 		return false;
 	}

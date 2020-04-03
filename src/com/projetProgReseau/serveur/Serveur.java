@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,16 +19,15 @@ import com.projetBomberman.strategy.EsquiveStrategy;
 import com.projetBomberman.strategy.PutBombStrategy;
 import com.projetBomberman.strategy.RandomStrategy;
 import com.projetBomberman.strategy.Strategy;
-import com.projetProgReseau.entity.Partie;
-import com.projetProgReseau.metier.PartieForm;
 import com.projetProgReseau.view.Map;
 import com.projetProgReseau.view.ViewConnexion;
 
 
 public class Serveur implements Runnable {
 	
-	/* A passée en paramètre du client lorsque le serveur sera adapté pour tous les modes de jeu */
-	private static final ModeJeu MODE_JEU = ModeJeu.SOLO;
+	private static final String MODE_NORMAL = "normal";
+	private static final String MODE_SOLO = "solo";
+	private static final String MODE_DUO = "duo";
 	
 	private static final String RANDOM_STRATEGY = "random";
 	private static final String PUT_BOMB_STRATEGY = "put_bomb";
@@ -42,9 +40,7 @@ public class Serveur implements Runnable {
 	private static final String MSG_PAUSE_GAME = "PAUSE";
 	private static final String MSG_ETAPE_GAME = "ETAPE";
 	private static final String MSG_DEBUT_GAME = "DEBUT";
-	private static final String MSG_FIN_PARTIE = "FIN_PARTIE";
-	private static final String SEP_FIN_PARTIE = ">";
-	private static final String SEP_INFOS_PARTIE = ";";
+	private static final String REGEX_TIME = "[0-9]*";
 	
 	
 	public Socket connexion;
@@ -73,12 +69,15 @@ public class Serveur implements Runnable {
 	public void run() {
 		String ch;
 		String strategy;
+		String mode;
 		int maxturn;
 		
 		try {
 			/* Recuperation du nom du client, du nombre de tour et de la strategy des agents */
 			sortie.writeUTF(nomClient);
 			System.out.println("[SERVEUR] Connexion de " + nomClient);
+			mode = entree.readLine();
+			ModeJeu modeJeu = initModeJeu(mode);
 			maxturn = Integer.parseInt( entree.readLine() );
 			strategy = entree.readLine();
 			Strategy agentStrategy = initStrategyAgent(strategy);
@@ -97,7 +96,7 @@ public class Serveur implements Runnable {
 			
 			
 			/* Creation du l'etat du jeu initial */
-			game = new BombermanGame(nomClient, MODE_JEU, agentStrategy, maxturn, map);
+			game = new BombermanGame(Serveur.this, nomClient, modeJeu, agentStrategy, maxturn, map);
 			envoyerEtatJeu();
 			
 			
@@ -106,24 +105,35 @@ public class Serveur implements Runnable {
 				
 				if(ch != null) {
 					
-					if(ch.endsWith( MSG_DECO_CLIENT )) {
+					if(ch.endsWith( MSG_DECO_CLIENT )) { /* Deconnexion du client */
+						System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Deconnexion de " + nomClient);
 						listSockets.remove(connexion);
-					} else {
-						if(ch.contains( MSG_INIT_GAME )) {
+					} else if(ch.matches( REGEX_TIME )) { /* Modification de la vitesse du jeu */
+						System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Modification de la vitesse de la partie");
+						game.setTime( Long.parseLong(ch) );
+					} else { /* Action du client pour modifier l'etat du jeu */
+						
+						switch(ch) {
+						case MSG_INIT_GAME:
+							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Initialisation de la partie");
 							game.initialize_game();
-						} else if(ch.contains( MSG_PAUSE_GAME )) {
+							break;
+						case MSG_PAUSE_GAME:
+							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Pause de la partie");
 							game.stop();
-						} else if(ch.contains( MSG_DEBUT_GAME )) {
+							break;
+						case MSG_DEBUT_GAME:
+							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Lancement de la partie");
 							game.launch();
-						} else if(ch.contains( MSG_ETAPE_GAME )) {
-							game.step();					
+							break;
+						case MSG_ETAPE_GAME:
+							System.out.println("[CLIENT " + nomClient + " -> SERVEUR] Nouvelle etape de la partie");
+							game.step();
+							break;
 						}
 						
 						envoyerEtatJeu();
 					}
-					
-					
-					System.out.println(ch);
 				}
 			}
 			
@@ -133,7 +143,7 @@ public class Serveur implements Runnable {
 		}
 	}
 	
-	private void envoyerEtatJeu() throws IOException {
+	public void envoyerEtatJeu() throws IOException {
 		String gameJson = "";
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -143,9 +153,18 @@ public class Serveur implements Runnable {
 			e1.printStackTrace();
 		}
 		sortie.writeUTF(gameJson);
-		System.out.println("BombermanGame envoyé avec succès");
+		System.out.println("[SERVEUR] BombermanGame envoyé avec succès au client " + this.nomClient);
 	}
 	
+	
+	private ModeJeu initModeJeu(String strategyAgent) {
+		switch(strategyAgent) {
+			case MODE_NORMAL: return ModeJeu.NORMAL;
+			case MODE_SOLO: return ModeJeu.SOLO;
+			case MODE_DUO: return ModeJeu.DUO;
+			default: return ModeJeu.NORMAL;
+		}
+	}
 	
 	private Strategy initStrategyAgent(String strategyAgent) {
 		switch(strategyAgent) {
@@ -168,6 +187,16 @@ public class Serveur implements Runnable {
 	    }
 	}
 	
+	
+	
+	public DataOutputStream getSortie() {
+		return sortie;
+	}
+	public void setSortie(DataOutputStream sortie) {
+		this.sortie = sortie;
+	}
+	
+
 	public static void main(String[] argu) {
 		
 		if (argu.length == 1) {

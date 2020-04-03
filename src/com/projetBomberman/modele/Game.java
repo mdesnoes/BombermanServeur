@@ -1,11 +1,12 @@
 package com.projetBomberman.modele;
 
-import java.util.Observable;
+
+import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.projetProgReseau.serveur.Serveur;
 
-
-public abstract class Game extends Observable implements Runnable {
+public abstract class Game implements Runnable {
 
 	public static final int INIT_TIME = 1000;
 	private int turn;
@@ -15,8 +16,11 @@ public abstract class Game extends Observable implements Runnable {
 	private long time;
 	@JsonIgnore
 	private Thread thread;
-
-	public Game(int maxturn) {
+	@JsonIgnore
+	private Serveur serveur;
+	
+	public Game(Serveur serveur, int maxturn) {
+		this.serveur = serveur;
 		this.maxturn = maxturn;
 		this.time = INIT_TIME;
 	}
@@ -25,8 +29,6 @@ public abstract class Game extends Observable implements Runnable {
 		this.turn = 0;
 		this.isRunning = true;
 		initialize_game();
-		this.setChanged();
-		this.notifyObservers();
 	}
 	
 	public void step() {
@@ -36,16 +38,23 @@ public abstract class Game extends Observable implements Runnable {
 		}
 		else {
 			this.isRunning = false;
-			gameOver();
+			try {
+				gameOver();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		
-		this.setChanged();
-		this.notifyObservers();
 	}
 	
 	public void run() {
 		while(this.isRunning) {
 			step();
+			
+			try {
+				this.serveur.envoyerEtatJeu();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			
 			try {
 				Thread.sleep(this.time);
@@ -68,7 +77,7 @@ public abstract class Game extends Observable implements Runnable {
 	public abstract void initialize_game();
 	public abstract void takeTurn();
 	public abstract boolean gameContinue();
-	public abstract void gameOver();
+	public abstract void gameOver() throws IOException;
 
 	
 	
@@ -97,6 +106,5 @@ public abstract class Game extends Observable implements Runnable {
 	public void setThread(Thread thread) {
 		this.thread = thread;
 	}
-	
 
 }

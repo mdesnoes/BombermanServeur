@@ -1,12 +1,12 @@
 package com.projetBomberman.modele;
 
-import java.io.PrintWriter;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.projetBomberman.controller.ControllerBombermanGame;
 import com.projetBomberman.factory.AgentFactory;
 import com.projetBomberman.factory.FactoryProvider;
 import com.projetBomberman.modele.info.ColorAgent;
@@ -14,18 +14,20 @@ import com.projetBomberman.modele.info.ModeJeu;
 import com.projetBomberman.strategy.*;
 import com.projetProgReseau.entity.Partie;
 import com.projetProgReseau.metier.PartieForm;
+import com.projetProgReseau.serveur.Serveur;
 import com.projetProgReseau.view.InfoAgent;
 import com.projetProgReseau.view.Map;
-import com.projetProgReseau.view.ViewGagnant;
 
 
 public class BombermanGame extends Game {
 
 	private static final int TURN_MAX_ITEM = 5;
 	private static final char BOMBERMAN = 'B';
+	private static final String MSG_FIN_PARTIE = "FIN_PARTIE";
+	private static final String SEP_MSG_FIN_PARTIE = ">";
+	private static final String SEP_DONNEES_FIN_PARTIE = ";";
 	
 	@JsonIgnore private ModeJeu mode;
-	@JsonIgnore private ControllerBombermanGame controllerBombGame;
     private ArrayList<AgentBomberman> listAgentsBomberman;
     private ArrayList<AgentPNJ> listAgentsPNJ;
 	private boolean[][] listBreakableWalls;
@@ -41,14 +43,14 @@ public class BombermanGame extends Game {
 	private String nomJoueur;
 	@JsonIgnore private AgentBomberman bombermanJoueur1;
 	@JsonIgnore private AgentBomberman bombermanJoueur2;
-	@JsonIgnore private PrintWriter sortie;
+	@JsonIgnore private DataOutputStream sortie;
 	@JsonIgnore private Map map;
 	
-	public BombermanGame(String nom, ModeJeu mode, Strategy agentStrategy, int maxturn, Map map) {
-		super(maxturn);
+	public BombermanGame(Serveur serveur, String nom, ModeJeu mode, Strategy agentStrategy, int maxturn, Map map) {
+		super(serveur, maxturn);
+		this.sortie = serveur.getSortie();
 		this.nomJoueur = nom;
 		this.mode = mode;
-		this.controllerBombGame = new ControllerBombermanGame(this);
 		this.agentStrategy = agentStrategy;
 		this.map = map;
 	}
@@ -57,13 +59,13 @@ public class BombermanGame extends Game {
 		Date dateCourante = new Date();
 		this.dateDebutPartie = new Timestamp(dateCourante.getTime());
 		
-		System.out.println("Le jeu est initialisé");
+		System.out.println("### Jeu est initialisé pour le client " + this.nomJoueur + " ###");
 		this.listAgentsBomberman = new ArrayList<>();
 		this.listAgentsPNJ = new ArrayList<>();
 		
 		boolean[][] _startBreakableWalls = this.map.getStart_breakable_walls();
 		
-		// Copie profonde du tableau des murs cassables pour pouvoir les faire réaparaitre quand on réinitialise le jeu
+		/* Copie profonde du tableau des murs cassables pour pouvoir les faire réaparaitre quand on réinitialise le jeu */
 		int x = 0;
 		int y = 0;
 		this.listBreakableWalls = new boolean[_startBreakableWalls.length][_startBreakableWalls[x].length];
@@ -90,16 +92,14 @@ public class BombermanGame extends Game {
 			else {
 		    	this.listAgentsPNJ.add((AgentPNJ) agentFactory.createAgent(agent.getX(), agent.getY(), agent.getType(), null));
 			}
-
-			System.out.println(agent.getX() + " - " + agent.getY() + " type : " + agent.getType());
 		}
 		
 		this.bombermanJoueur1 = this.listAgentsBomberman.get(0);
-		//En mode solo, on contrôle le premier agent
+		/* En mode solo, on contrôle le premier agent */
 		if(this.mode == ModeJeu.SOLO) {
 			this.bombermanJoueur1.setStrategy(new InteractifStrategyCommande1());
-		} //En mode duo ou duel, on peut controler les deux premiers agents (avec des touches différentes)
-		else if(this.mode == ModeJeu.DUO || this.mode == ModeJeu.DUEL) {
+		} /* En mode duo, on peut controler les deux premiers agents (avec des touches différentes) */
+		else if(this.mode == ModeJeu.DUO) {
 			this.bombermanJoueur2 = this.listAgentsBomberman.get(1);
 			this.bombermanJoueur1.setStrategy(new InteractifStrategyCommande1());
 			this.bombermanJoueur2.setStrategy(new InteractifStrategyCommande2());
@@ -174,43 +174,39 @@ public class BombermanGame extends Game {
 
 
 	public boolean gameContinue() {
-		
-		
 		if(this.listAgentsBomberman.size() == 1) {
 			if(this.listAgentsPNJ.size() > 0) {
 				return true;
 			}
 			else return false;
 		}
-		
-		if(this.listAgentsBomberman.isEmpty()) { // S'il n'y a plus d'agent bomberman
+		if(this.listAgentsBomberman.isEmpty()) {
 			return false;
 		}
 		return true;
 	}
+	
 
-	public void gameOver() {
-		System.out.println("Fin du jeu");
+	public void gameOver() throws IOException {
+		System.out.println("### Fin de la partie du client " + this.nomJoueur + " ###");
 		
 		String vainqueur;
-		
 		if(this.listAgentsBomberman.size() <= 0) {
-			System.out.println("Victoire des agents PNJ !");
-			ViewGagnant.getInstance(this.controllerBombGame, "PNJ", "");
 			vainqueur = "PNJ";
+
+			this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE + "PNJ" + SEP_DONNEES_FIN_PARTIE + "black");
 		}
 		else {
 			AgentBomberman bombermanVainqueur = this.listAgentsBomberman.get(0);
-			System.out.println("Victoire de l'agent '" + bombermanVainqueur.getColor() + "'");
-			
-			String color = colorAgentToColor(bombermanVainqueur.getColor());
-			ViewGagnant.getInstance(this.controllerBombGame, bombermanVainqueur.getColor().toString(), color);
-			
 			if(bombermanVainqueur == this.bombermanJoueur1) {
 				vainqueur = this.nomJoueur;
 			} else {
 				vainqueur = "IA";
 			}
+			
+			String color = colorAgentToColor(bombermanVainqueur.getColor());
+			this.sortie.writeUTF(MSG_FIN_PARTIE + SEP_MSG_FIN_PARTIE 
+					+ bombermanVainqueur.getColor().toString() + SEP_DONNEES_FIN_PARTIE + color);
 		}
 
 		/* Enregistrement de la partie pour exploitation avec JEE */
@@ -320,12 +316,6 @@ public class BombermanGame extends Game {
 	public void setMode(ModeJeu mode) {
 		this.mode = mode;
 	}
-	public ControllerBombermanGame getControllerBombGame() {
-		return controllerBombGame;
-	}
-	public void setControllerBombGame(ControllerBombermanGame controllerBombGame) {
-		this.controllerBombGame = controllerBombGame;
-	}
 	public ArrayList<AgentBomberman> getListAgentsBomberman() {
 		return listAgentsBomberman;
 	}
@@ -403,12 +393,6 @@ public class BombermanGame extends Game {
 	}
 	public void setBombermanJoueur2(AgentBomberman bombermanJoueur2) {
 		this.bombermanJoueur2 = bombermanJoueur2;
-	}
-	public PrintWriter getSortie() {
-		return sortie;
-	}
-	public void setSortie(PrintWriter sortie) {
-		this.sortie = sortie;
 	}
 	public Map getMap() {
 		return map;

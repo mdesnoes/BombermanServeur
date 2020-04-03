@@ -20,7 +20,6 @@ public class EsquiveStrategy implements Strategy {
 			if(bombe != null) { // On regarde s'il y a une bombe
 				if(bombermanGame.getAgentBombermanByBomb(bombe) != agent) { // On verifie que cette bombe n'appartient pas au bomberman
 					if(bombe.getStateBomb() == StateBomb.Step3) {	// On regarde si c'est une bombe à l'etat 3
-						System.out.println("Agent " + agent.getColor() + " - Esquive en haut ou en bas");
 					
 						if(agent.isLegalMove(bombermanGame, AgentAction.MOVE_UP)) {
 							return AgentAction.MOVE_UP;
@@ -39,7 +38,6 @@ public class EsquiveStrategy implements Strategy {
 			if(bombe != null) {
 				if(bombermanGame.getAgentBombermanByBomb(bombe) != agent) {
 					if(bombe.getStateBomb() == StateBomb.Step3) {
-						System.out.println("Agent " + agent.getColor() + " - Esquive a droite ou à gauche");
 			
 						if(agent.isLegalMove(bombermanGame, AgentAction.MOVE_LEFT)) {
 							return AgentAction.MOVE_LEFT;

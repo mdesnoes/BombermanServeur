@@ -99,9 +99,6 @@ public class Bombe {
 
 			if(agent != null && agent != agentProprietaireBomb) { // Si on trouve un agent different de celui qui a posé la bombe
 				if(!agent.isInvincible()) {
-					if(agentProprietaireBomb != null) { 
-						System.out.println("L'agent " + agentProprietaireBomb.getColor() + " à détruit l'agent " + agent.getColor());
-					}
 
 					bombermanGame.addListAgentDetruit(agent);
 				}
@@ -114,9 +111,6 @@ public class Bombe {
 
 			if(agent != null && agent != agentProprietaireBomb) {
 				if(!agent.isInvincible()) {
-					if(agentProprietaireBomb != null) {
-						System.out.println("L'agent " + agentProprietaireBomb.getColor() + " à détruit l'agent " + agent.getColor());
-					}
 
 					bombermanGame.addListAgentDetruit(agent);
 				}
