@@ -5,9 +5,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,17 +42,19 @@ public class Serveur implements Runnable {
 	private static final String MSG_MODIF_TIME = "TIME";
 	
 	private static final String CONNEXION_OK = "Connexion acceptee";
-	private static final String CONNEXION_NOK = "Connexion refusee";
 	
+	private static final String MSG_DEJA_CONNECTE = "<html>Vous êtes déjà connecté !<html>";
+	private static final String MSG_AUTH_INCORRECTE = "<html>Nom d'utilisateur ou mot de passe introuvable<br/>Reessayer ou creer un compte</html>";
+
 	
-	public Socket connexion;
-	public List<Socket> listSockets = new ArrayList<Socket>();
+	private Socket connexion;
+	private List<Socket> listSockets;
 	private BufferedReader entree;
 	private DataOutputStream sortie;
 	
 	private String nomClient;
 	private BombermanGame game;
-	
+	private String msgErreurConnexion;
 	
 	public Serveur(Socket s, List<Socket> listSockets){
 		this.connexion=s;
@@ -76,15 +76,16 @@ public class Serveur implements Runnable {
 			/* Verification de la connexion du compte */
 			this.nomClient = entree.readLine();
 			String mdp = entree.readLine();
-			while(!connexion(mdp)) {
+			while(!connexionAccepte(mdp)) {
 				System.out.println("[SERVEUR] Connexion refusée pour " + nomClient);
 				
-				this.sortie.writeUTF( CONNEXION_NOK );
+				this.sortie.writeUTF( msgErreurConnexion );
 
 				this.nomClient = entree.readLine();
 				mdp = entree.readLine();
 			}
 			
+			Thread.currentThread().setName(this.nomClient);
 			this.sortie.writeUTF( CONNEXION_OK );
 			System.out.println("[SERVEUR] Connexion acceptée pour " + nomClient);
 			
@@ -103,10 +104,8 @@ public class Serveur implements Runnable {
 				map = mapper.readValue(entree.readLine(), Map.class);
 			} catch (Exception e) {
 				System.out.println("[SERVEUR] [ERREUR] erreur : lors de l'envoie de la récupération de la map initiale");
-				e.printStackTrace();
 				terminer();
 			}
-			
 			
 			/* Creation du l'etat du jeu initial */
 			game = new BombermanGame(Serveur.this, nomClient, modeJeu, agentStrategy, maxturn, map);
@@ -129,7 +128,7 @@ public class Serveur implements Runnable {
 						switch(ch) {
 							case MSG_INIT_GAME:
 								System.out.println("[CLIENT " + nomClient + " > SERVEUR] Initialisation de la partie");
-								game.init();
+								game.init(); 
 								break;
 							case MSG_PAUSE_GAME:
 								System.out.println("[CLIENT " + nomClient + " > SERVEUR] Pause de la partie");
@@ -156,7 +155,7 @@ public class Serveur implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("[SERVEUR] [ERREUR] La connexion avec le client + " + nomClient + " a été perdue");
 			terminer();
 		}
 	}
@@ -189,9 +188,27 @@ public class Serveur implements Runnable {
 	}
 
 	
-	private boolean connexion(String mdp) throws IOException {
+	private boolean connexionAccepte(String mdp) throws IOException {
 		UtilisateurForm form = new UtilisateurForm();
-		return form.verifConnexion(this.nomClient, mdp);
+		
+		/* Verification du pseudo et du mot de passe avec le JEE */
+		if(!form.verifConnexion(this.nomClient, mdp)) {
+			this.msgErreurConnexion = MSG_AUTH_INCORRECTE;
+			return false;
+		} else {
+			/* Verification que le client n'est pas déjà connecté sur le serveur */
+			int nbThreadCourant = Thread.activeCount();
+			Thread th[] = new Thread[ nbThreadCourant ];
+		    Thread.enumerate(th);
+		    for (int i = 0; i < nbThreadCourant; i++) {
+		    	if( th[i].getName().equals(this.nomClient) ) {
+		    		this.msgErreurConnexion = MSG_DEJA_CONNECTE;
+		    		return false;
+		    	}
+		    }
+			return true;
+		}
+		
 	}
 	
 	public void envoyerEtatJeu() throws IOException {
