@@ -48,8 +48,8 @@ public abstract class Game implements Runnable {
 			
 			try {
 				this.serveur.envoyerEtatJeu();
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			
 			try {

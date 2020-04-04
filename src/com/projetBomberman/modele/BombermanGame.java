@@ -92,15 +92,16 @@ public class BombermanGame extends Game {
 			}
 		}
 		
-		this.bombermanJoueur1 = this.listAgentsBomberman.get(0);
+		/* Initialisation des agents controlé par le client */
 		/* En mode solo, on contrôle le premier agent */
 		if(this.mode == ModeJeu.SOLO) {
-			this.bombermanJoueur1.setStrategy(new InteractifStrategyCommande1());
+			this.bombermanJoueur1 = this.listAgentsBomberman.get(0);
 		} /* En mode duo, on peut controler les deux premiers agents (avec des touches différentes) */
 		else if(this.mode == ModeJeu.DUO) {
-			this.bombermanJoueur2 = this.listAgentsBomberman.get(1);
-			this.bombermanJoueur1.setStrategy(new InteractifStrategyCommande1());
-			this.bombermanJoueur2.setStrategy(new InteractifStrategyCommande2());
+			this.bombermanJoueur1 = this.listAgentsBomberman.get(0);
+			if(this.listAgentsBomberman.size() > 1) {
+				this.bombermanJoueur2 = this.listAgentsBomberman.get(1);
+			}
 		}
 	}
 
@@ -132,7 +133,7 @@ public class BombermanGame extends Game {
 				}
 			}
 
-			//On effectue l'action du bomberman
+			/* On effectue l'action du bomberman */
 			agentBomberman.executer(this);
 		}
 

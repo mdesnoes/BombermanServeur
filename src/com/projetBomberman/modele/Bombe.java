@@ -122,17 +122,10 @@ public class Bombe {
 	
 	private void changeStateBomb() {
 		switch(this.stateBomb) {
-			case Step1:
-				this.stateBomb = StateBomb.Step2;
-				break;
-			case Step2:
-				this.stateBomb = StateBomb.Step3;
-				break;
-			case Step3:
-				this.stateBomb = StateBomb.Boom;
-				break;
-			case Boom:
-				break;
+			case Step1: this.stateBomb = StateBomb.Step2; break;
+			case Step2: this.stateBomb = StateBomb.Step3; break;
+			case Step3: this.stateBomb = StateBomb.Boom; break;
+			case Boom: break;
 		}
 	}
 

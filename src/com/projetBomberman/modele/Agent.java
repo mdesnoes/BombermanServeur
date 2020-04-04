@@ -12,9 +12,9 @@ public abstract class Agent {
 	private int posX;
 	private int posY;
 	private ColorAgent color;
-	private AgentAction action;
+	protected AgentAction action;
 	private char type;
-	@JsonIgnore private Strategy strategy;
+	@JsonIgnore protected Strategy strategy;
 	
 	public Agent(int pos_x, int pos_y, char type, ColorAgent color, Strategy strategy) {
 		this.posX = pos_x;

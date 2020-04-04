@@ -23,9 +23,13 @@ public class AgentBomberman extends Agent {
 	}
 	
 	public void executer(BombermanGame bombermanGame) {
-
-		AgentAction action = this.getStrategy().chooseAction(bombermanGame, this);
-		this.setAction(action);
+		
+		/* Si c'est n'est pas un bomberman controlé par le client, on choisit son action en fonction de sa strategie */
+		if( this != bombermanGame.getBombermanJoueur1() && this != bombermanGame.getBombermanJoueur2() ) {
+			action = this.strategy.chooseAction(bombermanGame, this);
+			this.setAction(action);
+		}
+		
 		
 		if(action == AgentAction.PUT_BOMB) {
 			Bombe bombe = new Bombe(this.getPosX(), this.getPosY(), this.getRangeBomb(), StateBomb.Step1);
@@ -82,75 +86,53 @@ public class AgentBomberman extends Agent {
     	 //Un agent bomberman ne peut pas se deplacer sur un autre agent
 		return bombGame.getAgentByCoord(newX, newY) == null;
 	}
+	
 
 	public void moveAgent(AgentAction action) {
 		switch(action) {
-			case MOVE_UP:
-				this.setPosY(this.getPosY() - 1);
-				break;
-			case MOVE_DOWN:
-				this.setPosY(this.getPosY() + 1);
-				break;
-			case MOVE_LEFT:
-				this.setPosX(this.getPosX() - 1);
-				break;
-			case MOVE_RIGHT:
-				this.setPosX(this.getPosX() + 1);
-				break;
-			default:
-				break;
+			case MOVE_UP: this.setPosY(this.getPosY() - 1); break;
+			case MOVE_DOWN: this.setPosY(this.getPosY() + 1); break;
+			case MOVE_LEFT: this.setPosX(this.getPosX() - 1); break;
+			case MOVE_RIGHT: this.setPosX(this.getPosX() + 1); break;
+			default: break;
 		}
 	}
 	
 	
 	private void takeItem(Item item) {
 		switch(item.getType()) {
-		case FIRE_UP:
-			this.rangeBomb++;
-			
-			//On met a jour les bombes déjà poser sur le terrain
-			for(Bombe bombAgent : this.listBombes) {
-				bombAgent.setRange(this.rangeBomb);
-			}
-
-			break;
-		case FIRE_DOWN:
-			this.rangeBomb--;
-
-			//On met a jour les bombes déjà poser sur le terrain
-			for(Bombe bombAgent : this.listBombes) {
-				bombAgent.setRange(this.rangeBomb);
-			}
-
-			break;	
-		case BOMB_UP:
-			this.nbBombe++;
-			break;
-		case BOMB_DOWN:
-			this.nbBombe --;
-			break;
-		case FIRE_SUIT:
-			this.isInvincible = true;
-			break;
-		case SKULL:
-			this.isSick = true;
-			break;
+			case FIRE_UP:
+				this.rangeBomb++;
+				//On met à jour les bombes déjà posée sur le terrain
+				for(Bombe bombAgent : this.listBombes) {
+					bombAgent.setRange(this.rangeBomb);
+				}
+				break;
+			case FIRE_DOWN:
+				this.rangeBomb--;
+				//On met à jour les bombes déjà posée sur le terrain
+				for(Bombe bombAgent : this.listBombes) {
+					bombAgent.setRange(this.rangeBomb);
+				}
+				break;	
+			case BOMB_UP: this.nbBombe++; break;
+			case BOMB_DOWN: this.nbBombe --; break;
+			case FIRE_SUIT: this.isInvincible = true; break;
+			case SKULL: this.isSick = true; break;
 		}
 	}
 
+	
 	private void addBombe(Bombe bomb) {
 		this.listBombes.add(bomb);
 	}
-	
-	void removeBombe(Bombe bomb) {
+	public void removeBombe(Bombe bomb) {
 		this.listBombes.remove(bomb);
 	}
-	
 	public boolean canPutBomb() {
 		if(this.isSick) {
 			return false;
 		}
-
 		return this.listBombes.size() < this.nbBombe;
 	}
 
