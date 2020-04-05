@@ -4,7 +4,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.projetProgReseau.serveur.Serveur;
+import com.projet.serveur.Serveur;
 
 public class LancementServeur {
 
