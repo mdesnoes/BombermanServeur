@@ -31,9 +31,9 @@ public class BombermanGame extends Game {
 	private boolean[][] listBreakableWalls;
 	private ArrayList<Bombe> listBombs;
 	private ArrayList<Item> listItems;
-	@JsonIgnore private ArrayList<Agent> listAgentsDetruit;
-	@JsonIgnore private ArrayList<Bombe> listBombesDetruite;
-	@JsonIgnore private ArrayList<Item> listItemsUtilise;
+	@JsonIgnore private ArrayList<Agent> listAgentsDetruit = new ArrayList<>();
+	@JsonIgnore private ArrayList<Bombe> listBombesDetruite = new ArrayList<>();
+	@JsonIgnore private ArrayList<Item> listItemsUtilise = new ArrayList<>();
 	@JsonIgnore private Strategy agentStrategy;
 	
 	@JsonIgnore private Timestamp dateDebutPartie;
@@ -50,13 +50,6 @@ public class BombermanGame extends Game {
 		this.mode = mode;
 		this.agentStrategy = agentStrategy;
 		this.map = map;
-		this.listAgentsBomberman = new ArrayList<>();
-		this.listAgentsPNJ = new ArrayList<>();
-		this.listBombs = new ArrayList<>();
-		this.listItems = new ArrayList<>();
-		this.listAgentsDetruit = new ArrayList<>();
-		this.listBombesDetruite = new ArrayList<>();
-		this.listItemsUtilise = new ArrayList<>();
 	}
 
 	public void initialize_game() {
@@ -64,6 +57,11 @@ public class BombermanGame extends Game {
 		Date dateCourante = new Date();
 		this.dateDebutPartie = new Timestamp(dateCourante.getTime());
 
+		this.listAgentsBomberman = new ArrayList<>();
+		this.listAgentsPNJ = new ArrayList<>();
+		this.listBombs = new ArrayList<>();
+		this.listItems = new ArrayList<>();
+		
 		/* Copie profonde du tableau des murs cassables pour pouvoir les faire réaparaitre quand on réinitialise le jeu */
 		boolean[][] _startBreakableWalls = this.map.getStart_breakable_walls();
 		int x = 0;
@@ -105,7 +103,10 @@ public class BombermanGame extends Game {
 	}
 
 	public void takeTurn() {
-
+		this.listAgentsDetruit = new ArrayList<>();
+		this.listBombesDetruite = new ArrayList<>();
+		this.listItemsUtilise = new ArrayList<>();
+		
 		/* Action des agents bomberman */
 		for (AgentBomberman agentBomberman: this.listAgentsBomberman) {
 			//Verification des malus/bonus des bomberman
